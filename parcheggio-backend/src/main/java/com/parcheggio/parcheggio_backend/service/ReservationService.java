@@ -19,9 +19,7 @@ public class ReservationService {
     private ReservationRepository reservationRepository;
 
     @Autowired
-    private ParkingSpotRepository parkingSpotRepository;
-
-    /**
+    private ParkingSpotRepository parkingSpotRepository;    /**
      * Crea una nuova prenotazione.
      */
     public Reservation createReservation(Reservation reservation) {
@@ -30,7 +28,20 @@ public class ReservationService {
                 .orElseThrow(() -> new RuntimeException("Posto non trovato"));
 
         LocalDateTime startTime = reservation.getStartTime();
-        LocalDateTime endTime = reservation.getEndTime();        // Controlla sovrapposizione di orari
+        LocalDateTime endTime = reservation.getEndTime();
+        LocalDateTime now = LocalDateTime.now();
+        
+        // Verifica che la data di inizio sia nel futuro
+        if (startTime.isBefore(now)) {
+            throw new RuntimeException("Impossibile creare una prenotazione con data di inizio nel passato.");
+        }
+        
+        // Verifica che la data di fine sia successiva alla data di inizio
+        if (endTime.isBefore(startTime) || endTime.equals(startTime)) {
+            throw new RuntimeException("La data di fine deve essere successiva alla data di inizio.");
+        }
+        
+        // Controlla sovrapposizione di orari
         if (hasOverlappingReservation(spot, startTime, endTime)) {
             throw new RuntimeException("Sovrapposizione di orari: il posto è già prenotato in questo intervallo.");
         }
@@ -91,8 +102,7 @@ public class ReservationService {
     public Reservation findById(Long id) {
         return reservationRepository.findById(id).orElse(null);
     }
-    
-    /**
+      /**
      * Aggiorna una prenotazione esistente.
      */
     public Reservation updateReservation(Reservation reservation) {
@@ -101,7 +111,20 @@ public class ReservationService {
                 .orElseThrow(() -> new RuntimeException("Posto non trovato"));
 
         LocalDateTime startTime = reservation.getStartTime();
-        LocalDateTime endTime = reservation.getEndTime();        // Controlla sovrapposizione di orari (escludendo la prenotazione corrente)
+        LocalDateTime endTime = reservation.getEndTime();
+        LocalDateTime now = LocalDateTime.now();
+        
+        // Verifica che la data di inizio sia nel futuro
+        if (startTime.isBefore(now)) {
+            throw new RuntimeException("Impossibile aggiornare la prenotazione con data di inizio nel passato.");
+        }
+        
+        // Verifica che la data di fine sia successiva alla data di inizio
+        if (endTime.isBefore(startTime) || endTime.equals(startTime)) {
+            throw new RuntimeException("La data di fine deve essere successiva alla data di inizio.");
+        }
+        
+        // Controlla sovrapposizione di orari (escludendo la prenotazione corrente)
         if (hasOverlappingReservation(spot, startTime, endTime, reservation.getId())) {
             throw new RuntimeException("Sovrapposizione di orari: il posto è già prenotato in questo intervallo.");
         }

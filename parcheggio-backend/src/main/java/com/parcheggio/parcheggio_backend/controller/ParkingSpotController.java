@@ -18,12 +18,15 @@ public class ParkingSpotController {
     @GetMapping
     public List<ParkingSpot> getAllSpots() {
         return parkingSpotRepository.findAll();
-    }
-    @GetMapping("/city/{cityId}")
+    }    @GetMapping("/city/{cityId}")
     public List<ParkingSpot> getParkingSpotsByCity(@PathVariable Long cityId) {
-        return parkingSpotRepository.findByCityId(cityId);
+        return parkingSpotRepository.findByCityId(cityId)
+                .stream()
+                .filter(spot -> !spot.isBusSpot())
+                .toList();
     }
     
+    // Endpoint rimosso come richiesto, solo per uso interno
     @GetMapping("/city/{cityId}/bus")
     public List<ParkingSpot> getBusParkingSpotsByCity(@PathVariable Long cityId) {
         return parkingSpotRepository.findByCityIdAndIsBusSpot(cityId, true);

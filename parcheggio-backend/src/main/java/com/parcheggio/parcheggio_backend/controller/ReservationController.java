@@ -59,20 +59,24 @@ public class ReservationController {
     }
       /**
      * Ottiene le prenotazioni di un posto specifico.
-     */
-    @GetMapping("/by-parking-spot/{spotId}")
+     */    @GetMapping("/by-parking-spot/{spotId}")
     public ResponseEntity<List<Map<String, String>>> getReservationsByParkingSpot(@PathVariable Long spotId) {
         try {
             List<Reservation> reservations = reservationService.findByParkingSpotId(spotId);
+            LocalDateTime now = LocalDateTime.now();
             
             // Semplifichiamo i dati da inviare al frontend (solo date e orari)
+            // Filtriamo le prenotazioni per mostrare solo quelle future o in corso
             List<Map<String, String>> simplifiedReservations = new ArrayList<>();
             
             for (Reservation r : reservations) {
-                Map<String, String> reservationData = new HashMap<>();
-                reservationData.put("startTime", r.getStartTime().toString());
-                reservationData.put("endTime", r.getEndTime().toString());
-                simplifiedReservations.add(reservationData);
+                // Mostra solo le prenotazioni con la data di fine nel futuro
+                if (r.getEndTime().isAfter(now)) {
+                    Map<String, String> reservationData = new HashMap<>();
+                    reservationData.put("startTime", r.getStartTime().toString());
+                    reservationData.put("endTime", r.getEndTime().toString());
+                    simplifiedReservations.add(reservationData);
+                }
             }
             
             return ResponseEntity.ok(simplifiedReservations);
