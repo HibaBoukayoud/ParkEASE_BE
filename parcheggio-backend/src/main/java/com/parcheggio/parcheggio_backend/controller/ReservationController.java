@@ -84,18 +84,7 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
-      /**
-     * Ottiene le prenotazioni per una specifica email.
-     */
-    @GetMapping("/by-email/{email}")
-    public ResponseEntity<List<Reservation>> getReservationsByEmail(@PathVariable String email) {
-        try {
-            List<Reservation> reservations = reservationService.findByEmail(email);
-            return ResponseEntity.ok(reservations);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
+     
 
     /**
      * Ottiene tutte le prenotazioni di bus.
@@ -120,7 +109,6 @@ public class ReservationController {
             
             // Aggiorna i campi modificabili
             existingReservation.setVehiclePlate(reservation.getVehiclePlate());
-            existingReservation.setEmail(reservation.getEmail());
             existingReservation.setStartTime(reservation.getStartTime());
             existingReservation.setEndTime(reservation.getEndTime());
             
