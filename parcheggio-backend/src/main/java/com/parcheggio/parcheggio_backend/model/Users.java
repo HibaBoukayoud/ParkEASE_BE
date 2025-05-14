@@ -3,6 +3,7 @@ import jakarta.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="Users")
 public class Users {
@@ -10,9 +11,12 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable=false)
+    @Column(nullable=false, unique=true)
     private String email;
+    
+    @Column(nullable=false)
     private String password;
+    
     public Long getId() {
         return id;
     }

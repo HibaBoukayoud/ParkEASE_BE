@@ -1,53 +1,62 @@
 package com.parcheggio.parcheggio_backend.config;
 
 import com.parcheggio.parcheggio_backend.filter.JwtAuthenticationFilter;
-import com.parcheggio.parcheggio_backend.service.UsersService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
-    private final UsersService userService;
+    private final CorsConfigurationSource corsConfigSource;
+    private final AuthenticationProvider authenticationProvider;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtFilter, UsersService userService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtFilter, 
+                         CorsConfigurationSource corsConfigurationSource,
+                         AuthenticationProvider authenticationProvider) {
         this.jwtFilter = jwtFilter;
-        this.userService = userService;
-    }
-
-    @Bean
+        this.corsConfigSource = corsConfigurationSource;
+        this.authenticationProvider = authenticationProvider;
+    }    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable()
-            .authorizeHttpRequests()
-                .requestMatchers("/auth/").permitAll()
+            .cors(cors -> cors.configurationSource(corsConfigSource))
+            .csrf(csrf -> csrf.disable())            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/api/cities/**").permitAll() 
+                .requestMatchers("/api/parking-spots/**").permitAll()
+                .requestMatchers("/api/test/public").permitAll()
+                .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()
-            .and()
-            .sessionManagement()
+            )
+            .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            )
+            .authenticationProvider(authenticationProvider)
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("{\"error\": \"Non autorizzato: " + authException.getMessage() + "\"}");
+                    response.setContentType("application/json");
+                })
+            );
         return http.build();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }
