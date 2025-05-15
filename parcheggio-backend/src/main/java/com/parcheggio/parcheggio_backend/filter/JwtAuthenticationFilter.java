@@ -39,10 +39,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Controllo se è una richiesta di autenticazione o un OPTIONS (preflight)
             String requestURI = request.getRequestURI();
             String method = request.getMethod();
-            
-            // Bypass per endpoint di autenticazione e richieste OPTIONS
+              // Bypass per endpoint di autenticazione e richieste OPTIONS
             if (requestURI.startsWith("/auth/") || "OPTIONS".equals(method) || 
-                requestURI.startsWith("/api/cities") || requestURI.startsWith("/api/parking-spots")) {
+                requestURI.startsWith("/api/cities") || requestURI.startsWith("/api/parking-spots") ||
+                requestURI.startsWith("/api/reservations/by-parking-spot")) {
                 logger.info("Bypassando JWT per richiesta {} {}", method, requestURI);
                 chain.doFilter(request, response);
                 return;

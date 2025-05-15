@@ -30,12 +30,12 @@ public class SecurityConfig {
         this.authenticationProvider = authenticationProvider;
     }    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .cors(cors -> cors.configurationSource(corsConfigSource))
+        http            .cors(cors -> cors.configurationSource(corsConfigSource))
             .csrf(csrf -> csrf.disable())            .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/api/cities/**").permitAll() 
                 .requestMatchers("/api/parking-spots/**").permitAll()
+                .requestMatchers("/api/reservations/by-parking-spot/**").permitAll()
                 .requestMatchers("/api/test/public").permitAll()
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()
