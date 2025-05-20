@@ -185,26 +185,24 @@ public class ReservationService {
         return false; // Nessuna sovrapposizione
     }    /**
      * Calcola il costo della prenotazione: 
-     * - Auto: 2 euro/ora fino a 8 ore, poi 25 euro/giorno.
-     * - Bus: 5 euro/ora fino a 6 ore, poi 50 euro/giorno.
+     * - Auto: 2 euro/ora (1 euro/mezz'ora) fino a 8 ore, poi 25 euro/giorno.
+     * - Bus: gratis
      */
     private double calculateCost(LocalDateTime startTime, LocalDateTime endTime, boolean isBusReservation) {
-        long hours = ChronoUnit.HOURS.between(startTime, endTime);
-        
         if (isBusReservation) {
-            // Tariffa per i bus
-            if (hours <= 6) {
-                return hours * 5.0; // 5 euro/ora per le prime 6 ore
-            } else {
-                long days = (hours + 23) / 24; // Arrotonda per eccesso al giorno successivo
-                return days * 50.0; // 50 euro al giorno per i bus
-            }
+            // I bus non pagano
+            return 0.0;
         } else {
-            // Tariffa per le auto (invariata)
-            if (hours <= 8) {
-                return hours * 2.0; // 2 euro/ora per le prime 8 ore
+            // Tariffa per le auto con supporto per mezz'ore
+            // Calcola la differenza in minuti e poi converti in mezz'ore
+            long totalMinutes = ChronoUnit.MINUTES.between(startTime, endTime);
+            long halfHours = (totalMinutes + 29) / 30; // Arrotonda per eccesso alla mezz'ora successiva
+            
+            if (halfHours <= 16) { // 16 mezz'ore = 8 ore
+                return halfHours * 1.0; // 1 euro per mezz'ora
             } else {
-                long days = (hours + 23) / 24; // Arrotonda per eccesso al giorno successivo
+                // Per più di 8 ore, calcola i giorni (arrotondando per eccesso)
+                long days = (totalMinutes + 1439) / 1440; // 1440 minuti in un giorno
                 return days * 25.0; // 25 euro al giorno per le auto
             }
         }
